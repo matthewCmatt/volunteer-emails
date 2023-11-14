@@ -7,8 +7,9 @@ df = pd.read_csv("in.csv")
 events = pd.read_csv("events.csv", index_col=0)
 
 for i, row in df.iterrows():
-    clip.copy(row.loc["OU Email"])
-    input("Done with address?")
+    email_address = row.loc["OU Email"]
+    clip.copy(email_address)
+    input("Done with " + email_address + "?")
 
     clip.copy("Green Weekend Volunteer Instructions!")
     input("Done with subject?")
