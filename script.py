@@ -7,45 +7,39 @@ df = pd.read_csv("in.csv")
 events = pd.read_csv("events.csv", index_col=0)
 
 for i, row in df.iterrows():
-    email_address = row.loc["OU Email"]
+    email_address = row.loc["Email Address"]
     clip.copy(email_address)
     input("Done with " + email_address + "?")
 
-    clip.copy("Green Weekend Volunteer Instructions!")
+    clip.copy("Green Week Volunteer Instructions!")
     input("Done with subject?")
+
+    firstname = row.loc["name "].split(" ")[0].title()
+    signups = row[3:13].dropna()
+
+    # Build schedule string
+    schedule = "<hr>"
+    for event in signups.index.to_list():
+        event_data = events.loc[event]
+
+        schedule += "<b>" + event_data.eventName + "</b><br>"
+
+        if event == "Wildcare Rehab Talk! (1pm-3pm Wednesday)":
+            schedule += "The Wildcare Talk has been dropped from this years schedule :(<br>"
+            continue
+
+        schedule += str(event_data.date) + " " + str(event_data.locationPhrase) + "<br>"
+        schedule += "Total Runtime: " + event_data.time + "<br>"
+        schedule += "Your volunteer times:<br><ul>"
+        for time in signups[event].split(","):
+            if (time):
+                schedule += "<li>" + time.strip() + "</li>"
+        schedule += "</ul>"
+        schedule += "<u>Instructions:</u> " + str(event_data.instructions) + "<br><hr>"
 
     with open("template.html", "r") as template:
         email = template.read()
 
-        signups = row[5:12].dropna()
-
-        # Build schedule string
-        schedule = "<hr>"
-        for event in signups.index.to_list():
-            event_data = events.loc[event]
-
-            schedule = schedule + ("<b>" + event_data.eventName + "</b><br>")
-            schedule = schedule + (
-                str(event_data.date) + " at " + str(event_data.location) + "<br>"
-            )
-            schedule = schedule + ("Total Runtime: " + event_data.time + "<br>")
-            if event == "Sunset Zumba (7:00pm - 7:45pm)":
-                schedule = (
-                    schedule
-                    + "<br>NOTE: This event has been reschedule from our original sign-up times. You indicated that you could attend, so please reply or message @Matt in Slack if you are STILL able to come :)"
-                )
-            else:
-                schedule = schedule + "<ul>"
-                for time in signups[event].split(";"):
-                    schedule = schedule + ("<li>" + time + "</li>")
-                schedule = schedule + "</ul>"
-            schedule = (
-                schedule
-                + "<u>Instructions:</u> "
-                + event_data.instructions
-                + "<br><hr>"
-            )
-
-    clip.copy(email.format(schedule=schedule))
+    clip.copy(email.format(firstname=firstname, schedule=schedule))
     input("Done with sent?")
     print("----------")
